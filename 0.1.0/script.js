@@ -7,6 +7,17 @@
 </div>
 */
 
+function criarCamada(filhos = []) {
+    const camada = document.createElement('div');
+    camada.classList.add('camada');
+
+    filhos.forEach(filho => {
+        camada.appendChild(filho);
+    });
+
+    return camada;
+}
+
 // Função para criar um elemento de habilidade
 
 function criarHabilidade(nome, imagemUrl, descricao) {
@@ -40,7 +51,7 @@ function criarHabilidade(nome, imagemUrl, descricao) {
     return node;
 }
 
-// Função para criar uma seta de conexão
+// Função para criar uma seta de conexão (não está funcionando)
 function criarSeta() {
     const seta = document.createElement('div');
     seta.classList.add('seta'); // Classe para estilizar a seta
@@ -52,26 +63,37 @@ function criarSeta() {
 function gerarArvoreDeHabilidades() {
     const container = document.getElementById('arvore-container');
     
+    
     // Habilidades (refazer isso depois para pegar as habilidades a partir de um json ou banco de dados)
     const barraAustraliana = criarHabilidade('Barra Australiana', 'barra-australiana-icon.png', 'Exercício de puxada com o corpo inclinado, ótimo para iniciantes.');
     const barra = criarHabilidade('Barra', 'barra-icon.png', 'Exercício de puxada na barra fixa, desenvolve força na parte superior do corpo.');
     const skinTheCat = criarHabilidade('Skin the Cat', 'skin-the-cat-icon.png', 'Movimento de ginástica que envolve girar o corpo ao redor da barra.');
     const muscleUp = criarHabilidade('Muscle Up', 'muscle-up-icon.png', 'Movimento avançado que combina uma puxada e um empurrão para subir acima da barra.');
     
+    //geração estatica de camadas, alterar depois para ser dinamico usando os requisitos de cada habilidade
+    camadas = [[barraAustraliana], [barra], [skinTheCat, muscleUp]]; // Cada sub-array representa uma camada na árvore 
+
+    camadas.forEach(camada => {
+        const camadaNode = criarCamada(camada);
+        container.appendChild(camadaNode);
+    });
+    
     // Conectar as habilidades com setas
-    const seta1 = criarSeta();
-    const seta2 = criarSeta();
+    //const seta1 = criarSeta();
+    //const seta2 = criarSeta();
 
     // Estrutura de hierarquia
     const nodoPrincipal = document.createElement('div');
     nodoPrincipal.classList.add('nodo-principal');
     
+    /*
     nodoPrincipal.appendChild(barraAustraliana);
     nodoPrincipal.appendChild(seta1);
     nodoPrincipal.appendChild(barra);
     nodoPrincipal.appendChild(seta2);
     nodoPrincipal.appendChild(skinTheCat);
     nodoPrincipal.appendChild(muscleUp);
+    */
 
     // Adicionar tudo ao container principal
     container.appendChild(nodoPrincipal);

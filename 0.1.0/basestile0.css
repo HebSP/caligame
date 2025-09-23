@@ -70,6 +70,12 @@ footer {
     border-radius: 16px;
     box-shadow: 0 4px 24px #0008;
 }
+#arvore-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+}
 .skill-tree {
     display: flex;
     justify-content: space-between;
@@ -92,7 +98,19 @@ footer {
     font-size: 1.3em;
     letter-spacing: 1px;
 }
+.camada {
+    display: flex;
+        justify-content: center;
+    gap: 24px;
+    margin-bottom: 24px;
+}
 .skill {
+    min-width: 200px;
+    max-width: 260px;
+    width: max-content;
+    z-index: 2;
+    padding-right: 18px;
+    padding-left: 18px;
     width: 100%;
     background: #292929;
     border-radius: 8px;
