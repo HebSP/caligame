@@ -51,12 +51,35 @@ function criarHabilidade(nome, imagemUrl, descricao) {
     return node;
 }
 
-// Função para criar uma seta de conexão (não está funcionando)
-function criarSeta() {
-    const seta = document.createElement('div');
-    seta.classList.add('seta'); // Classe para estilizar a seta
+// cria setas entre as habilidades usando svg
+function criarSetas(inicioX, inicioY, fimX, fimY){ 
+    const svgNS = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("width", "100%");
+    svg.setAttribute("height", "100%");
 
-    return seta;
+    const line = document.createElementNS(svgNS, "line");
+    line.setAttribute("x1", "0");
+    line.setAttribute("y1", "0");
+    line.setAttribute("x2", "100%");
+    line.setAttribute("y2", "100%");
+    line.setAttribute("stroke", "black");
+    line.setAttribute("stroke-width", "2");
+
+    
+    svg.appendChild(line);
+    return svg;
+}
+
+function criarDivSetas(){
+    const setasContainer = document.createElement('div')
+    setasContainer.classList.add('setas-container')
+    //obter as posições das habilidades e criar as setas dinamicamente
+    
+
+    setasContainer.appendChild(criarSetas())
+
+    return setasContainer
 }
 
 // Função para gerar a árvore de habilidades
@@ -78,25 +101,17 @@ function gerarArvoreDeHabilidades() {
         container.appendChild(camadaNode);
     });
     
-    // Conectar as habilidades com setas
-    //const seta1 = criarSeta();
-    //const seta2 = criarSeta();
-
     // Estrutura de hierarquia
     const nodoPrincipal = document.createElement('div');
     nodoPrincipal.classList.add('nodo-principal');
-    
-    /*
-    nodoPrincipal.appendChild(barraAustraliana);
-    nodoPrincipal.appendChild(seta1);
-    nodoPrincipal.appendChild(barra);
-    nodoPrincipal.appendChild(seta2);
-    nodoPrincipal.appendChild(skinTheCat);
-    nodoPrincipal.appendChild(muscleUp);
-    */
 
     // Adicionar tudo ao container principal
     container.appendChild(nodoPrincipal);
+
+    // Adicionar setas entre as camadas
+    const containerSetas = criarDivSetas();
+    container.appendChild(containerSetas);
+
 }
 
 // Chama a função para gerar a árvore
