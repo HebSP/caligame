@@ -1,3 +1,5 @@
+//import './habilidades.json';
+
 /*div class="skill">
     <div class="skill-img">Imagem</div>
     <div class="skill-info">
@@ -23,6 +25,7 @@ function criarCamada(filhos = []) {
 function criarHabilidade(nome, imagemUrl, descricao) {
     const node = document.createElement('div');
     node.classList.add('skill');
+    node.id = nome.replace(/\s+/g, '-').toLowerCase(); // id baseado no nome
 
     const skillImg = document.createElement('div');
     skillImg.classList.add('skill-img');
@@ -52,32 +55,57 @@ function criarHabilidade(nome, imagemUrl, descricao) {
 }
 
 // cria setas entre as habilidades usando svg
-function criarSetas(inicioX, inicioY, fimX, fimY){ 
+function criarSetas(ligações, setasContainer) { 
     const svgNS = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(svgNS, "svg");
     svg.setAttribute("width", "100%");
     svg.setAttribute("height", "100%");
 
-    const line = document.createElementNS(svgNS, "line");
-    line.setAttribute("x1", "0");
-    line.setAttribute("y1", "0");
-    line.setAttribute("x2", "100%");
-    line.setAttribute("y2", "100%");
-    line.setAttribute("stroke", "black");
-    line.setAttribute("stroke-width", "2");
+    const containerBox = setasContainer.getBoundingClientRect();
 
+    ligações.forEach(ligação => {
+        // lógica para posicionar as setas entre as habilidades
+        // pegar a posição dos elementos e criar a seta entre eles
+        const inicioBox = ligação[0].getBoundingClientRect();
+        const fimBox = ligação[1].getBoundingClientRect();
+        
+        // calcular os pontos de início e fim da seta
+        // const inicioX = inicioBox.left + inicioBox.width / 2;
+        // const inicioY = inicioBox.top + inicioBox.height;
+        // const fimX = fimBox.left + fimBox.width / 2;
+        // const fimY = fimBox.top;
+
+        //const inicioX = inicioBox.left /*+ inicioBox.width / 2*/;
+        //const inicioY = inicioBox.top /*+ inicioBox.height*/;
+        //const fimX = fimBox.left /*+ fimBox.width / 2*/;
+        //const fimY = fimBox.top;*/
+        
+        // Ajustar as coordenadas relativas ao container de setas
+        const inicioX = inicioBox.left;
+        const inicioY = inicioBox.top;
+        const fimX    = fimBox.left;
+        const fimY    = fimBox.top;
+
+        const line = document.createElementNS(svgNS, "line");
+        line.setAttribute("x1", String(inicioX));
+        line.setAttribute("y1", String(inicioY));
+        line.setAttribute("x2", String(fimX));
+        line.setAttribute("y2", String(fimY));
+        line.setAttribute("stroke", "black");
+        line.setAttribute("stroke-width", "10");
+        line.setAttribute("marker-end", "url(#arrowhead)");
+        svg.appendChild(line);
     
-    svg.appendChild(line);
+    })
+
     return svg;
 }
 
-function criarDivSetas(){
+function criarDivSetas(ligações){
     const setasContainer = document.createElement('div')
     setasContainer.classList.add('setas-container')
-    //obter as posições das habilidades e criar as setas dinamicamente
     
-
-    setasContainer.appendChild(criarSetas())
+    setasContainer.appendChild(criarSetas(ligações,setasContainer))
 
     return setasContainer
 }
@@ -96,6 +124,13 @@ function gerarArvoreDeHabilidades() {
     //geração estatica de camadas, alterar depois para ser dinamico usando os requisitos de cada habilidade
     camadas = [[barraAustraliana], [barra], [skinTheCat, muscleUp]]; // Cada sub-array representa uma camada na árvore 
 
+    ligações = [
+        [barraAustraliana, barra],
+        [barra, skinTheCat],
+        [barra, muscleUp]
+    ]; // Ligações entre habilidades (pai -> filho)
+
+    // Criar e adicionar camadas ao container
     camadas.forEach(camada => {
         const camadaNode = criarCamada(camada);
         container.appendChild(camadaNode);
@@ -109,7 +144,7 @@ function gerarArvoreDeHabilidades() {
     container.appendChild(nodoPrincipal);
 
     // Adicionar setas entre as camadas
-    const containerSetas = criarDivSetas();
+    const containerSetas = criarDivSetas(ligações);
     container.appendChild(containerSetas);
 
 }
