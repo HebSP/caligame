@@ -1,5 +1,3 @@
-import habilidades from './habilidades.json' assert { type: 'json' };
-
 /*div class="skill">
     <div class="skill-img">Imagem</div>
     <div class="skill-info">
@@ -63,6 +61,8 @@ function criarSetas(ligações, container) {
 
     const containerBox = container.getBoundingClientRect();
 
+    const defs = document.createElementNS(svgNS, "defs");
+    const marker = document.createElementNS(svgNS, "marker");
 
     ligações.forEach(ligação => {
         // lógica para posicionar as setas entre as habilidades
@@ -73,8 +73,6 @@ function criarSetas(ligações, container) {
         
 
         // Criar marcador de seta (precisa diminuir o tamanho depois)
-        const defs = document.createElementNS(svgNS, "defs");
-        const marker = document.createElementNS(svgNS, "marker");
         marker.setAttribute("id", "arrowhead");
         marker.setAttribute("markerWidth", "5");
         marker.setAttribute("markerHeight", "3");
@@ -101,7 +99,7 @@ function criarSetas(ligações, container) {
         line.setAttribute("x2", String(fimX));
         line.setAttribute("y2", String(fimY));
         line.setAttribute("stroke", "black");
-        line.setAttribute("stroke-width", "10");
+        line.setAttribute("stroke-width", "5");
         line.setAttribute("marker-end", "url(#arrowhead)");
         svg.appendChild(line);
     
@@ -120,10 +118,13 @@ function criarDivSetas(ligações, container){
 }
 
 // Função para gerar a árvore de habilidades
+/*
 function gerarArvoreDeHabilidades() {
     const container = document.getElementById('arvore-container');
     let camadas = []; // Array para armazenar as camadas
     let ligações = []; // Array para armazenar as ligações entre habilidades
+    const mapaNodes = {};
+
 
     // Função para organizar as habilidades em camadas    
     habilidades.forEach(habilidade => {
@@ -153,7 +154,7 @@ function gerarArvoreDeHabilidades() {
                 if (reqNode) {
                     ligações.push([reqNode, habilidade.node]);
                 }
-                else console.warn("Pré-requisito não encontrado: ${req}");
+                else console.warn(`Pré-requisito não encontrado: ${req}`);
             });
         }
     });
@@ -175,7 +176,9 @@ function gerarArvoreDeHabilidades() {
         [barra, skinTheCat],
         [barra, muscleUp]
     ]; // Ligações entre habilidades (pai -> filho)
-    */
+    //*
+
+
 
     // Criar e adicionar camadas ao container
     camadas.forEach(camada => {
@@ -194,6 +197,80 @@ function gerarArvoreDeHabilidades() {
     const containerSetas = criarDivSetas(ligações,container);
     container.appendChild(containerSetas);
 }
+*/
+
+function gerarArvoreDeHabilidades() {
+    const container = document.getElementById('arvore-container');
+
+    fetch('./habilidades.json')
+        .then(res => res.json())
+        .then(habilidades => {
+            let camadas = [];
+            let ligações = [];
+            let mapaNodes = {};
+
+            // Criar os nós das habilidades
+            habilidades.forEach(habilidade => {
+                habilidade.node = criarHabilidade(
+                    habilidade.nome,
+                    habilidade.imagem,
+                    habilidade.descricao
+                );
+
+                // Guardar no mapa para achar pelos pré-requisitos
+                mapaNodes[habilidade.nome.toLowerCase()] = habilidade.node;
+
+                if (habilidade.pre_requisitos.length === 0) {
+                    if (!camadas[0]) camadas[0] = [];
+                    camadas[0].push(habilidade.node);
+                } else {
+                    let camadaMaior = -1;
+                    habilidade.pre_requisitos.forEach(req => {
+                        for (let i = 0; i < camadas.length; i++) {
+                            if (
+                                camadas[i].some(
+                                    h => h.id === req.replace(/\s+/g, '-').toLowerCase()
+                                )
+                            ) {
+                                if (i > camadaMaior) camadaMaior = i;
+                                break;
+                            }
+                        }
+                    });
+                    const novaCamada = camadaMaior + 1;
+                    if (!camadas[novaCamada]) camadas[novaCamada] = [];
+                    camadas[novaCamada].push(habilidade.node);
+
+                    habilidade.pre_requisitos.forEach(req => {
+                        const reqNode = mapaNodes[req.toLowerCase()];
+                        if (reqNode) {
+                            ligações.push([reqNode, habilidade.node]);
+                        } else {
+                            console.warn(`Pré-requisito não encontrado: ${req}`);
+                        }
+                    });
+                }
+            });
+
+            // Criar e adicionar camadas ao container
+            camadas.forEach(camada => {
+                const camadaNode = criarCamada(camada);
+                container.appendChild(camadaNode);
+            });
+
+            const nodoPrincipal = document.createElement('div');
+            nodoPrincipal.classList.add('nodo-principal');
+            container.appendChild(nodoPrincipal);
+
+            const containerSetas = criarDivSetas(ligações, container);
+            container.appendChild(containerSetas);
+        })
+        .catch(err => console.error('Erro ao carregar habilidades.json:', err));
+}
+
+// Chama a função
+gerarArvoreDeHabilidades();
+
 
 // Chama a função para gerar a árvore
 gerarArvoreDeHabilidades();
