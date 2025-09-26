@@ -1,4 +1,4 @@
-//import './habilidades.json';
+import habilidades from './habilidades.json' assert { type: 'json' };
 
 /*div class="skill">
     <div class="skill-img">Imagem</div>
@@ -55,36 +55,45 @@ function criarHabilidade(nome, imagemUrl, descricao) {
 }
 
 // cria setas entre as habilidades usando svg
-function criarSetas(ligações, setasContainer) { 
+function criarSetas(ligações, container) { 
     const svgNS = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(svgNS, "svg");
     svg.setAttribute("width", "100%");
     svg.setAttribute("height", "100%");
 
-    const containerBox = setasContainer.getBoundingClientRect();
+    const containerBox = container.getBoundingClientRect();
+
 
     ligações.forEach(ligação => {
         // lógica para posicionar as setas entre as habilidades
+
         // pegar a posição dos elementos e criar a seta entre eles
         const inicioBox = ligação[0].getBoundingClientRect();
         const fimBox = ligação[1].getBoundingClientRect();
         
-        // calcular os pontos de início e fim da seta
-        // const inicioX = inicioBox.left + inicioBox.width / 2;
-        // const inicioY = inicioBox.top + inicioBox.height;
-        // const fimX = fimBox.left + fimBox.width / 2;
-        // const fimY = fimBox.top;
 
-        //const inicioX = inicioBox.left /*+ inicioBox.width / 2*/;
-        //const inicioY = inicioBox.top /*+ inicioBox.height*/;
-        //const fimX = fimBox.left /*+ fimBox.width / 2*/;
-        //const fimY = fimBox.top;*/
+        // Criar marcador de seta (precisa diminuir o tamanho depois)
+        const defs = document.createElementNS(svgNS, "defs");
+        const marker = document.createElementNS(svgNS, "marker");
+        marker.setAttribute("id", "arrowhead");
+        marker.setAttribute("markerWidth", "5");
+        marker.setAttribute("markerHeight", "3");
+        marker.setAttribute("refX", "0");
+        marker.setAttribute("refY", "1.5");
+        marker.setAttribute("orient", "auto");
+        const arrowPath = document.createElementNS(svgNS, "path");
+        arrowPath.setAttribute("d", "M0,0 L0,3 L5,1.5 z"); // Triângulo
+        arrowPath.setAttribute("fill", "black");
+        marker.appendChild(arrowPath);
+        defs.appendChild(marker);
+        svg.appendChild(defs);
         
+
         // Ajustar as coordenadas relativas ao container de setas
-        const inicioX = inicioBox.left;
-        const inicioY = inicioBox.top;
-        const fimX    = fimBox.left;
-        const fimY    = fimBox.top;
+        const inicioX = (inicioBox.left + inicioBox.right) / 2 - containerBox.left;
+        const inicioY = inicioBox.bottom - containerBox.top;
+        const fimX    = (fimBox.left + fimBox.right) / 2 - containerBox.left;
+        const fimY    = fimBox.top - containerBox.top;
 
         const line = document.createElementNS(svgNS, "line");
         line.setAttribute("x1", String(inicioX));
@@ -101,11 +110,11 @@ function criarSetas(ligações, setasContainer) {
     return svg;
 }
 
-function criarDivSetas(ligações){
+function criarDivSetas(ligações, container){
     const setasContainer = document.createElement('div')
     setasContainer.classList.add('setas-container')
     
-    setasContainer.appendChild(criarSetas(ligações,setasContainer))
+    setasContainer.appendChild(criarSetas(ligações,container))
 
     return setasContainer
 }
@@ -113,8 +122,45 @@ function criarDivSetas(ligações){
 // Função para gerar a árvore de habilidades
 function gerarArvoreDeHabilidades() {
     const container = document.getElementById('arvore-container');
-    
-    
+    let camadas = []; // Array para armazenar as camadas
+    let ligações = []; // Array para armazenar as ligações entre habilidades
+
+    // Função para organizar as habilidades em camadas    
+    habilidades.forEach(habilidade => {
+        habilidade.node = criarHabilidade(habilidade.nome, habilidade.imagem, habilidade.descricao);
+        if (habilidade.pre_requisitos.length === 0) {
+            // Se não tiver pré-requisitos, vai para a primeira camada
+            if (!camadas[0]) camadas[0] = [];
+            camadas[0].push(habilidade.node);
+        } else {
+            // Encontrar a camada mais alta dos pré-requisitos
+            let camadaMaior = -1;
+            habilidade.pre_requisitos.forEach(req => {
+                for (let i = 0; i < camadas.length; i++) {
+                    if (camadas[i].some(h => h.id === req.replace(/\s+/g, '-').toLowerCase())) {
+                        if (i > camadaMaior) camadaMaior = i;
+                        break;
+                    }
+                }
+            });
+            const novaCamada = camadaMaior + 1;
+            if (!camadas[novaCamada]) camadas[novaCamada] = [];
+            camadas[novaCamada].push(habilidade.node);
+
+            // Adicionar ligações entre os pré-requisitos e a habilidade atual
+            habilidade.pre_requisitos.forEach(req => {
+                const reqNode = mapaNodes[req.toLowerCase()];
+                if (reqNode) {
+                    ligações.push([reqNode, habilidade.node]);
+                }
+                else console.warn("Pré-requisito não encontrado: ${req}");
+            });
+        }
+    });
+
+
+
+    /* 
     // Habilidades (refazer isso depois para pegar as habilidades a partir de um json ou banco de dados)
     const barraAustraliana = criarHabilidade('Barra Australiana', 'barra-australiana-icon.png', 'Exercício de puxada com o corpo inclinado, ótimo para iniciantes.');
     const barra = criarHabilidade('Barra', 'barra-icon.png', 'Exercício de puxada na barra fixa, desenvolve força na parte superior do corpo.');
@@ -129,6 +175,7 @@ function gerarArvoreDeHabilidades() {
         [barra, skinTheCat],
         [barra, muscleUp]
     ]; // Ligações entre habilidades (pai -> filho)
+    */
 
     // Criar e adicionar camadas ao container
     camadas.forEach(camada => {
@@ -144,9 +191,8 @@ function gerarArvoreDeHabilidades() {
     container.appendChild(nodoPrincipal);
 
     // Adicionar setas entre as camadas
-    const containerSetas = criarDivSetas(ligações);
+    const containerSetas = criarDivSetas(ligações,container);
     container.appendChild(containerSetas);
-
 }
 
 // Chama a função para gerar a árvore
