@@ -244,7 +244,3 @@ function gerarArvoreDeHabilidades() {
 
 // Chama a função
 gerarArvoreDeHabilidades();
-
-
-// Chama a função para gerar a árvore
-gerarArvoreDeHabilidades();
