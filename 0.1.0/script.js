@@ -55,36 +55,45 @@ function criarHabilidade(nome, imagemUrl, descricao) {
 }
 
 // cria setas entre as habilidades usando svg
-function criarSetas(ligações, setasContainer) { 
+function criarSetas(ligações, container) { 
     const svgNS = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(svgNS, "svg");
     svg.setAttribute("width", "100%");
     svg.setAttribute("height", "100%");
 
-    const containerBox = setasContainer.getBoundingClientRect();
+    const containerBox = container.getBoundingClientRect();
+
+    const defs = document.createElementNS(svgNS, "defs");
+    const marker = document.createElementNS(svgNS, "marker");
 
     ligações.forEach(ligação => {
         // lógica para posicionar as setas entre as habilidades
+
         // pegar a posição dos elementos e criar a seta entre eles
         const inicioBox = ligação[0].getBoundingClientRect();
         const fimBox = ligação[1].getBoundingClientRect();
         
-        // calcular os pontos de início e fim da seta
-        // const inicioX = inicioBox.left + inicioBox.width / 2;
-        // const inicioY = inicioBox.top + inicioBox.height;
-        // const fimX = fimBox.left + fimBox.width / 2;
-        // const fimY = fimBox.top;
 
-        //const inicioX = inicioBox.left /*+ inicioBox.width / 2*/;
-        //const inicioY = inicioBox.top /*+ inicioBox.height*/;
-        //const fimX = fimBox.left /*+ fimBox.width / 2*/;
-        //const fimY = fimBox.top;*/
+        // Criar marcador de seta (precisa diminuir o tamanho depois)
+        marker.setAttribute("id", "arrowhead");
+        marker.setAttribute("markerWidth", "5");
+        marker.setAttribute("markerHeight", "3");
+        marker.setAttribute("refX", "0");
+        marker.setAttribute("refY", "1.5");
+        marker.setAttribute("orient", "auto");
+        const arrowPath = document.createElementNS(svgNS, "path");
+        arrowPath.setAttribute("d", "M0,0 L0,3 L5,1.5 z"); // Triângulo
+        arrowPath.setAttribute("fill", "black");
+        marker.appendChild(arrowPath);
+        defs.appendChild(marker);
+        svg.appendChild(defs);
         
+
         // Ajustar as coordenadas relativas ao container de setas
-        const inicioX = inicioBox.left;
-        const inicioY = inicioBox.top;
-        const fimX    = fimBox.left;
-        const fimY    = fimBox.top;
+        const inicioX = (inicioBox.left + inicioBox.right) / 2 - containerBox.left;
+        const inicioY = inicioBox.bottom - containerBox.top;
+        const fimX    = (fimBox.left + fimBox.right) / 2 - containerBox.left;
+        const fimY    = fimBox.top - containerBox.top;
 
         const line = document.createElementNS(svgNS, "line");
         line.setAttribute("x1", String(inicioX));
@@ -92,7 +101,7 @@ function criarSetas(ligações, setasContainer) {
         line.setAttribute("x2", String(fimX));
         line.setAttribute("y2", String(fimY));
         line.setAttribute("stroke", "black");
-        line.setAttribute("stroke-width", "10");
+        line.setAttribute("stroke-width", "5");
         line.setAttribute("marker-end", "url(#arrowhead)");
         svg.appendChild(line);
     
@@ -101,11 +110,11 @@ function criarSetas(ligações, setasContainer) {
     return svg;
 }
 
-function criarDivSetas(ligações){
+function criarDivSetas(ligações, container){
     const setasContainer = document.createElement('div')
     setasContainer.classList.add('setas-container')
     
-    setasContainer.appendChild(criarSetas(ligações,setasContainer))
+    setasContainer.appendChild(criarSetas(ligações,container))
 
     return setasContainer
 }
@@ -144,7 +153,7 @@ function gerarArvoreDeHabilidades() {
     container.appendChild(nodoPrincipal);
 
     // Adicionar setas entre as camadas
-    const containerSetas = criarDivSetas(ligações);
+    const containerSetas = criarDivSetas(ligações, container);
     container.appendChild(containerSetas);
 
 }
