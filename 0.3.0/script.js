@@ -117,69 +117,112 @@ function criarDivSetas(ligações, container){
     return setasContainer
 }
 
+function criarCamadas(habilidades) {
+    let camadas = [];
+    let habilidadesNaoMapeadas = [...habilidades]; // Copia das habilidades para rastrear as não mapeadas
+    // camada 0: habilidades sem requisitos
+    // camada 1: habilidades que dependem da camada 0
+    // camada 2: habilidades que dependem da camada 1
+    // e assim por diante...
+
+    while (habilidadesNaoMapeadas.length > 0) {
+        habilidadesNaoMapeadas.forEach(habilidade => {
+            if (habilidade.requisitos.length === 0) {
+                // Habilidade sem requisitos, vai para a camada 0
+                if (!camadas[0]) camadas[0] = [];
+                camadas[0].push(habilidade.node);
+                habilidadesNaoMapeadas = habilidadesNaoMapeadas.filter(h => h !== habilidade);
+            } else {
+                // Verifica se todos os requisitos já estão mapeados
+                const requisitosMapeados = habilidade.requisitos.every(req => {
+                    return camadas.some(camada => camada.some(h => h.id === req.replace(/\s+/g, '-').toLowerCase()));
+                });
+                if (requisitosMapeados) {
+                    // Encontra a camada mais alta dos requisitos
+                    let maxCamada = -1;
+                    habilidade.requisitos.forEach(req => {
+                        camadas.forEach((camada, index) => {
+                            if (camada.some(h => h.id === req.replace(/\s+/g, '-').toLowerCase())) {
+                                if (index > maxCamada) maxCamada = index;
+                            }
+                        });
+                    });
+                    const novaCamadaIndex = maxCamada + 1;
+                    if (!camadas[novaCamadaIndex]) camadas[novaCamadaIndex] = [];
+                    camadas[novaCamadaIndex].push(habilidade.node);
+                    habilidadesNaoMapeadas = habilidadesNaoMapeadas.filter(h => h !== habilidade);
+                }
+            }
+        });
+    }
+    return camadas;
+}
+
+function criarLigações(habilidades) {
+    let ligações = [];
+    habilidades.forEach(habilidade => {
+        habilidade.requisitos.forEach(req => {
+            const pai = habilidades.find(h => h.nome === req);
+            if (pai) {
+                ligações.push([pai.node, habilidade.node]);
+            }
+        });
+    });
+    return ligações;
+}
+
+// Exemplo usando fetch (funciona em páginas servidas por um servidor web)
+function carregarHabilidadesJSON() {
+    // Caminho relativo ao arquivo JSON
+    // Exemplo: 'habilidades.json'
+    // O arquivo precisa estar acessível via HTTP (não funciona localmente via file://)
+    // Retorna um array de habilidades (sincronicamente, para compatibilidade com o restante do código)
+    // Para uso assíncrono, adapte o restante do código para usar Promises ou async/await
+
+    // Exemplo de dados embutidos (caso fetch não funcione localmente)
+    return [
+        {
+            nome: "Flexão de Joelhos",
+            imagem: "img/flexao-joelhos.png",
+            descricao: "Flexão básica com apoio dos joelhos, ideal para iniciantes.",
+            requisitos: []
+        },
+        {
+            nome: "Flexão Tradicional",
+            imagem: "img/flexao-tradicional.png",
+            descricao: "Flexão tradicional sem apoio dos joelhos.",
+            requisitos: ["Flexão de Joelhos"]
+        }
+        // Adicione mais habilidades conforme necessário
+    ];
+
+    // Se estiver em ambiente web, pode usar fetch assim:
+    /*
+    // ATENÇÃO: O restante do código precisa ser adaptado para async/await!
+    return fetch('habilidades.json')
+        .then(response => response.json())
+        .then(data => data);
+    */
+}
+
+
 // Função para gerar a árvore de habilidades
-/*
+
 function gerarArvoreDeHabilidades() {
     const container = document.getElementById('arvore-container');
-    let camadas = []; // Array para armazenar as camadas
-    let ligações = []; // Array para armazenar as ligações entre habilidades
-    const mapaNodes = {};
-
-
-    // Função para organizar as habilidades em camadas    
+    
+    
+    // Habilidades 
+    habilidades = carregarHabilidadesJSON(); // Carrega do JSON
+    
+    // Criar nodes para cada habilidade
     habilidades.forEach(habilidade => {
         habilidade.node = criarHabilidade(habilidade.nome, habilidade.imagem, habilidade.descricao);
-        if (habilidade.pre_requisitos.length === 0) {
-            // Se não tiver pré-requisitos, vai para a primeira camada
-            if (!camadas[0]) camadas[0] = [];
-            camadas[0].push(habilidade.node);
-        } else {
-            // Encontrar a camada mais alta dos pré-requisitos
-            let camadaMaior = -1;
-            habilidade.pre_requisitos.forEach(req => {
-                for (let i = 0; i < camadas.length; i++) {
-                    if (camadas[i].some(h => h.id === req.replace(/\s+/g, '-').toLowerCase())) {
-                        if (i > camadaMaior) camadaMaior = i;
-                        break;
-                    }
-                }
-            });
-            const novaCamada = camadaMaior + 1;
-            if (!camadas[novaCamada]) camadas[novaCamada] = [];
-            camadas[novaCamada].push(habilidade.node);
-
-            // Adicionar ligações entre os pré-requisitos e a habilidade atual
-            habilidade.pre_requisitos.forEach(req => {
-                const reqNode = mapaNodes[req.toLowerCase()];
-                if (reqNode) {
-                    ligações.push([reqNode, habilidade.node]);
-                }
-                else console.warn(`Pré-requisito não encontrado: ${req}`);
-            });
-        }
     });
-
-
-
-    /* 
-    // Habilidades (refazer isso depois para pegar as habilidades a partir de um json ou banco de dados)
-    const barraAustraliana = criarHabilidade('Barra Australiana', 'barra-australiana-icon.png', 'Exercício de puxada com o corpo inclinado, ótimo para iniciantes.');
-    const barra = criarHabilidade('Barra', 'barra-icon.png', 'Exercício de puxada na barra fixa, desenvolve força na parte superior do corpo.');
-    const skinTheCat = criarHabilidade('Skin the Cat', 'skin-the-cat-icon.png', 'Movimento de ginástica que envolve girar o corpo ao redor da barra.');
-    const muscleUp = criarHabilidade('Muscle Up', 'muscle-up-icon.png', 'Movimento avançado que combina uma puxada e um empurrão para subir acima da barra.');
     
-    //geração estatica de camadas, alterar depois para ser dinamico usando os requisitos de cada habilidade
-    camadas = [[barraAustraliana], [barra], [skinTheCat, muscleUp]]; // Cada sub-array representa uma camada na árvore 
-
-    ligações = [
-        [barraAustraliana, barra],
-        [barra, skinTheCat],
-        [barra, muscleUp]
-    ]; // Ligações entre habilidades (pai -> filho)
-    //*
-
-
-
+    camadas = criarCamadas(habilidades); // Cada sub-array representa uma camada na árvore
+    
+    ligações = criarLigações(habilidades);
     // Criar e adicionar camadas ao container
     camadas.forEach(camada => {
         const camadaNode = criarCamada(camada);
@@ -194,78 +237,9 @@ function gerarArvoreDeHabilidades() {
     container.appendChild(nodoPrincipal);
 
     // Adicionar setas entre as camadas
-    const containerSetas = criarDivSetas(ligações,container);
+    const containerSetas = criarDivSetas(ligações, container);
     container.appendChild(containerSetas);
-}
-*/
 
-function gerarArvoreDeHabilidades() {
-    const container = document.getElementById('arvore-container');
-
-    fetch('./habilidades.json')
-        .then(res => res.json())
-        .then(habilidades => {
-            let camadas = [];
-            let ligações = [];
-            let mapaNodes = {};
-
-            // Criar os nós das habilidades
-            habilidades.forEach(habilidade => {
-                habilidade.node = criarHabilidade(
-                    habilidade.nome,
-                    habilidade.imagem,
-                    habilidade.descricao
-                );
-
-                // Guardar no mapa para achar pelos pré-requisitos
-                mapaNodes[habilidade.nome.toLowerCase()] = habilidade.node;
-
-                if (habilidade.pre_requisitos.length === 0) {
-                    if (!camadas[0]) camadas[0] = [];
-                    camadas[0].push(habilidade.node);
-                } else {
-                    let camadaMaior = -1;
-                    habilidade.pre_requisitos.forEach(req => {
-                        for (let i = 0; i < camadas.length; i++) {
-                            if (
-                                camadas[i].some(
-                                    h => h.id === req.replace(/\s+/g, '-').toLowerCase()
-                                )
-                            ) {
-                                if (i > camadaMaior) camadaMaior = i;
-                                break;
-                            }
-                        }
-                    });
-                    const novaCamada = camadaMaior + 1;
-                    if (!camadas[novaCamada]) camadas[novaCamada] = [];
-                    camadas[novaCamada].push(habilidade.node);
-
-                    habilidade.pre_requisitos.forEach(req => {
-                        const reqNode = mapaNodes[req.toLowerCase()];
-                        if (reqNode) {
-                            ligações.push([reqNode, habilidade.node]);
-                        } else {
-                            console.warn(`Pré-requisito não encontrado: ${req}`);
-                        }
-                    });
-                }
-            });
-
-            // Criar e adicionar camadas ao container
-            camadas.forEach(camada => {
-                const camadaNode = criarCamada(camada);
-                container.appendChild(camadaNode);
-            });
-
-            const nodoPrincipal = document.createElement('div');
-            nodoPrincipal.classList.add('nodo-principal');
-            container.appendChild(nodoPrincipal);
-
-            const containerSetas = criarDivSetas(ligações, container);
-            container.appendChild(containerSetas);
-        })
-        .catch(err => console.error('Erro ao carregar habilidades.json:', err));
 }
 
 // Chama a função

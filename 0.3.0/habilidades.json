@@ -6,7 +6,8 @@
             "descricao": "Um exercício básico que trabalha o peitoral, tríceps e ombros.",
             "pre_requisitos": []
         }},
-        { "barra-australiana": {"nome": "Barra Australiana",
+        { "barra-australiana": {
+            "nome": "Barra Australiana",
             "imagem": "img/barra_australiana.png",
             "descricao": "Exercício de puxada com o corpo inclinado, ótimo para iniciantes.",
             "pre_requisitos": []
@@ -119,6 +120,72 @@
             "imagem": "img/planche.png",
             "descricao": "Exercício isométrico avançado que exige força total do corpo para manter o equilíbrio horizontal.",
             "pre_requisitos": ["L-Sit", "Handstand"]
+        }},
+        { "planche-pushup": {
+            "nome": "Planche Push-Up",
+            "imagem": "img/planche_pushup.png",
+            "descricao": "Flexão de braço na posição de planche, exercício de elite para força máxima.",
+            "pre_requisitos": ["Planche", "Flexão de Braço"]
+        }},
+        { "one-arm-handstand-pushup": {
+            "nome": "One-Arm Handstand Push-Up",
+            "imagem": "img/one_arm_handstand_pushup.png",
+            "descricao": "Flexão de braço na posição de handstand com um braço, exercício de elite para força e equilíbrio.",
+            "pre_requisitos": ["One-Arm Handstand", "Flexão de Braço"]
+        }},
+        { "human-flag-pullup": {
+            "nome": "Human Flag Pull-Up",
+            "imagem": "img/human_flag_pullup.png",
+            "descricao": "Puxada na posição de human flag, exercício de elite para força máxima.",
+            "pre_requisitos": ["Human Flag", "One-Arm Pull-Up"]
+        }},
+        { "one-arm-front-lever": {
+            "nome": "One-Arm Front Lever",
+            "imagem": "img/one_arm_front_lever.png",
+            "descricao": "Front lever com um braço, exercício extremamente avançado para força máxima.",
+            "pre_requisitos": ["Front Lever", "One-Arm Pull-Up"]
+        }},
+        { "one-arm-back-lever": {
+            "nome": "One-Arm Back Lever",
+            "imagem": "img/one_arm_back_lever.png",
+            "descricao": "Back lever com um braço, exercício extremamente avançado para força máxima.",
+            "pre_requisitos": ["Back Lever", "One-Arm Pull-Up"]
+        }},
+        { "one-arm-planche": {
+            "nome": "One-Arm Planche",
+            "imagem": "img/one_arm_planche.png",
+            "descricao": "Planche com um braço, exercício de elite para força máxima.",
+            "pre_requisitos": ["Planche", "One-Arm Handstand"]
+        }},
+        { "one-arm-planche-pushup": {
+            "nome": "One-Arm Planche Push-Up",
+            "imagem": "img/one_arm_planche_pushup.png",
+            "descricao": "Flexão de braço na posição de one-arm planche, exercício de elite para força máxima.",
+            "pre_requisitos": ["One-Arm Planche", "Planche Push-Up"]
+        }},
+        { "one-arm-human-flag": {
+            "nome": "One-Arm Human Flag",
+            "imagem": "img/one_arm_human_flag.png",
+            "descricao": "Human flag com um braço, exercício de elite para força máxima.",
+            "pre_requisitos": ["Human Flag", "One-Arm Planche"]
+        }},
+        { "one-arm-human-flag-pullup": {
+            "nome": "One-Arm Human Flag Pull-Up",
+            "imagem": "img/one_arm_human_flag_pullup.png",
+            "descricao": "Puxada na posição de one-arm human flag, exercício de elite para força máxima.",
+            "pre_requisitos": ["One-Arm Human Flag", "Human Flag Pull-Up"]
+        }},
+        { "one-arm-dragon-flag": {
+            "nome": "One-Arm Dragon Flag",
+            "imagem": "img/one_arm_dragon_flag.png",
+            "descricao": "Dragon flag com um braço, exercício extremamente avançado para força máxima.",
+            "pre_requisitos": ["Dragon Flag", "One-Arm Front Lever", "One-Arm Back Lever"]
+        }},
+        { "one-arm-leg-raise": {
+            "nome": "One-Arm Leg Raise",
+            "imagem": "img/one_arm_leg_raise.png",
+            "descricao": "Elevação de pernas com um braço, exercício avançado para fortalecer os músculos abdominais.",
+            "pre_requisitos": ["Leg Raise", "One-Arm Dragon Flag"]
         }}
         
     ]
