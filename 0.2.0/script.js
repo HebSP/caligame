@@ -21,7 +21,6 @@ function criarCamada(filhos = []) {
 }
 
 // Função para criar um elemento de habilidade
-
 function criarHabilidade(nome, imagemUrl, descricao) {
     const node = document.createElement('div');
     node.classList.add('skill');
@@ -127,8 +126,6 @@ function criarCamadas(habilidades) {
     // camada 2: habilidades que dependem da camada 1
     // e assim por diante...
 
-    // Função recursiva para encontrar a profundidade de uma habilidade
-    
     while (habilidadesNaoMapeadas.length > 0) {
         habilidadesNaoMapeadas.forEach(habilidade => {
             if (habilidade.requisitos.length === 0) {
@@ -159,7 +156,6 @@ function criarCamadas(habilidades) {
             }
         });
     }
-
     return camadas;
 }
 
@@ -189,33 +185,13 @@ function gerarArvoreDeHabilidades() {
         { nome: 'Muscle Up', imagem: 'muscle-up-icon.png', descricao: 'Movimento avançado que combina uma puxada e um empurrão para subir acima da barra.', requisitos: ['Barra'] }
     ];
     
-
-
-    //const barraAustraliana = criarHabilidade('Barra Australiana', 'barra-australiana-icon.png', 'Exercício de puxada com o corpo inclinado, ótimo para iniciantes.');
-    //const barra = criarHabilidade('Barra', 'barra-icon.png', 'Exercício de puxada na barra fixa, desenvolve força na parte superior do corpo.');
-    //const skinTheCat = criarHabilidade('Skin the Cat', 'skin-the-cat-icon.png', 'Movimento de ginástica que envolve girar o corpo ao redor da barra.');
-    //const muscleUp = criarHabilidade('Muscle Up', 'muscle-up-icon.png', 'Movimento avançado que combina uma puxada e um empurrão para subir acima da barra.');
     habilidades.forEach(habilidade => {
         habilidade.node = criarHabilidade(habilidade.nome, habilidade.imagem, habilidade.descricao);
     });
     
-    //const barraAustraliana = habilidades.find(h => h.nome === 'Barra Australiana').node;
-    //const barra = habilidades.find(h => h.nome === 'Barra').node;
-    //const skinTheCat = habilidades.find(h => h.nome === 'Skin the Cat').node;
-    //const muscleUp = habilidades.find(h => h.nome === 'Muscle Up').node;
-    
-    //geração estatica de camadas, alterar depois para ser dinamico usando os requisitos de cada habilidade
-    //camadas = [[barraAustraliana], [barra], [skinTheCat, muscleUp]]; // Cada sub-array representa uma camada na árvore 
-
     camadas = criarCamadas(habilidades); // Cada sub-array representa uma camada na árvore
     
-    /*ligações = [
-        [barraAustraliana, barra],
-        [barra, skinTheCat],
-        [barra, muscleUp]
-    ]; // Ligações entre habilidades (pai -> filho)
-    */
-    let ligações = criarLigações(habilidades);
+    ligações = criarLigações(habilidades);
     // Criar e adicionar camadas ao container
     camadas.forEach(camada => {
         const camadaNode = criarCamada(camada);
