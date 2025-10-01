@@ -1,5 +1,4 @@
-{
-    "habilidades": [
+habilidades = [
         {   "key":"flexao-de-braco",
             "nome": "Flexão de Braço",
             "imagem": "img/flexao_de_braco.png",
@@ -186,7 +185,49 @@
             "imagem": "img/one_arm_leg_raise.png",
             "descricao": "Elevação de pernas com um braço, exercício avançado para fortalecer os músculos abdominais.",
             "pre_requisitos": ["leg-raise", "one-arm-dragon-flag"]
-        }
-        
+        }   
     ]
-}
+
+def detectar_ciclos_e_invalidos(habilidades):
+    # Mapear key -> habilidade
+    mapa = {h['key']: h for h in habilidades}
+
+    visitado = set()
+    pilha = set()
+    ciclos = []
+    invalidos = []
+
+    def dfs(no):
+        if no not in mapa:
+            invalidos.append(no)
+            return False
+        if no in pilha:
+            ciclos.append(no)
+            return True
+        if no in visitado:
+            return False
+
+        pilha.add(no)
+        visitado.add(no)
+
+        for pre in mapa[no]['pre_requisitos']:
+            if dfs(pre):
+                ciclos.append(no)
+                return True
+        pilha.remove(no)
+        return False
+
+    # Rodar DFS para cada habilidade
+    for habilidade in mapa.keys():
+        dfs(habilidade)
+
+    # Remover duplicatas da lista de ciclos
+    ciclos_unicos = list(set(ciclos))
+    invalidos_unicos = list(set(invalidos))
+
+    return ciclos_unicos, invalidos_unicos
+
+ciclos, invalidos = detectar_ciclos_e_invalidos(habilidades)
+
+print("Habilidades com ciclo de dependência:", ciclos)
+print("Pré-requisitos inválidos (não encontrados):", invalidos)

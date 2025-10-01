@@ -29,7 +29,7 @@
             "imagem": "img/muscle_up.png",
             "descricao": "Combinação de puxada e empurrada em uma única movimentação.",
             "pre_requisitos": ["Barra Fixa", "Flexão de Braço"]
-        }
+        },
         {
             "nome": "Agachamento",
             "imagem": "img/agachamento.png",

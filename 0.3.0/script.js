@@ -20,10 +20,10 @@ function criarCamada(filhos = []) {
 
 // Função para criar um elemento de habilidade
 
-function criarHabilidade(nome, imagemUrl, descricao) {
+function criarHabilidade(key,nome, imagemUrl, descricao) {
     const node = document.createElement('div');
     node.classList.add('skill');
-    node.id = nome.replace(/\s+/g, '-').toLowerCase(); // id baseado no nome
+    node.id = key;
 
     const skillImg = document.createElement('div');
     skillImg.classList.add('skill-img');
@@ -126,23 +126,24 @@ function criarCamadas(habilidades) {
     // e assim por diante...
 
     while (habilidadesNaoMapeadas.length > 0) {
+        console.log('Habilidades não mapeadas:', habilidadesNaoMapeadas.map(h => h.nome));
         habilidadesNaoMapeadas.forEach(habilidade => {
-            if (habilidade.requisitos.length === 0) {
+            if (habilidade.pre_requisitos.length === 0) {
                 // Habilidade sem requisitos, vai para a camada 0
                 if (!camadas[0]) camadas[0] = [];
                 camadas[0].push(habilidade.node);
                 habilidadesNaoMapeadas = habilidadesNaoMapeadas.filter(h => h !== habilidade);
             } else {
                 // Verifica se todos os requisitos já estão mapeados
-                const requisitosMapeados = habilidade.requisitos.every(req => {
-                    return camadas.some(camada => camada.some(h => h.id === req.replace(/\s+/g, '-').toLowerCase()));
+                const requisitosMapeados = habilidade.pre_requisitos.every(req => {
+                    return camadas.some(camada => camada.some(h => h.id === req));
                 });
                 if (requisitosMapeados) {
                     // Encontra a camada mais alta dos requisitos
                     let maxCamada = -1;
-                    habilidade.requisitos.forEach(req => {
+                    habilidade.pre_requisitos.forEach(req => {
                         camadas.forEach((camada, index) => {
-                            if (camada.some(h => h.id === req.replace(/\s+/g, '-').toLowerCase())) {
+                            if (camada.some(h => h.id === req)) {
                                 if (index > maxCamada) maxCamada = index;
                             }
                         });
@@ -160,9 +161,9 @@ function criarCamadas(habilidades) {
 
 function criarLigações(habilidades) {
     let ligações = [];
-    habilidades.forEach(habilidade => {
-        habilidade.requisitos.forEach(req => {
-            const pai = habilidades.find(h => h.nome === req);
+    habilidades.forEach(habilidade => { 
+        habilidade.pre_requisitos.forEach(req => {
+            const pai = habilidades.find(h => h.key === req);
             if (pai) {
                 ligações.push([pai.node, habilidade.node]);
             }
@@ -172,52 +173,33 @@ function criarLigações(habilidades) {
 }
 
 // Exemplo usando fetch (funciona em páginas servidas por um servidor web)
-function carregarHabilidadesJSON() {
-    // Caminho relativo ao arquivo JSON
-    // Exemplo: 'habilidades.json'
-    // O arquivo precisa estar acessível via HTTP (não funciona localmente via file://)
-    // Retorna um array de habilidades (sincronicamente, para compatibilidade com o restante do código)
-    // Para uso assíncrono, adapte o restante do código para usar Promises ou async/await
-
-    // Exemplo de dados embutidos (caso fetch não funcione localmente)
-    return [
-        {
-            nome: "Flexão de Joelhos",
-            imagem: "img/flexao-joelhos.png",
-            descricao: "Flexão básica com apoio dos joelhos, ideal para iniciantes.",
-            requisitos: []
-        },
-        {
-            nome: "Flexão Tradicional",
-            imagem: "img/flexao-tradicional.png",
-            descricao: "Flexão tradicional sem apoio dos joelhos.",
-            requisitos: ["Flexão de Joelhos"]
-        }
-        // Adicione mais habilidades conforme necessário
-    ];
-
-    // Se estiver em ambiente web, pode usar fetch assim:
-    /*
-    // ATENÇÃO: O restante do código precisa ser adaptado para async/await!
-    return fetch('habilidades.json')
-        .then(response => response.json())
-        .then(data => data);
-    */
+// async function carregarHabilidadesJSON() {
+//     jsonPromisse =  fetch('habilidades.json')
+//         .then(response => response.json())
+//         .then(data => data);
+//     habilidades = await jsonPromisse;
+//     return habilidades;
+// }
+async function carregarHabilidadesJSON() {
+    const response = await fetch('habilidades.json');
+    const data = await response.json();
+    return data.habilidades; // ou return data.habilidades, se quiser só o array específico
 }
+
 
 
 // Função para gerar a árvore de habilidades
 
-function gerarArvoreDeHabilidades() {
+async function gerarArvoreDeHabilidades() {
     const container = document.getElementById('arvore-container');
     
     
     // Habilidades 
-    habilidades = carregarHabilidadesJSON(); // Carrega do JSON
+    habilidades = await carregarHabilidadesJSON(); // Carrega do JSON
     
     // Criar nodes para cada habilidade
     habilidades.forEach(habilidade => {
-        habilidade.node = criarHabilidade(habilidade.nome, habilidade.imagem, habilidade.descricao);
+        habilidade.node = criarHabilidade(habilidade.key, habilidade.nome, habilidade.imagem, habilidade.descricao);
     });
     
     camadas = criarCamadas(habilidades); // Cada sub-array representa uma camada na árvore

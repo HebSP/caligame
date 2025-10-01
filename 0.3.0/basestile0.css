@@ -27,7 +27,6 @@ main {
     padding: 2rem 1rem;
 }
 .intro {
-    max-width: 600px;
     margin-bottom: 2rem;
     font-size: 1.2rem;
     line-height: 1.6;
@@ -63,7 +62,6 @@ footer {
 
 /* Skill Tree & Container Styles - merged and adjusted for consistency */
 .container {
-    max-width: 1100px;
     margin: 40px auto;
     padding: 24px;
     background: #23283a;
@@ -158,12 +156,6 @@ footer {
     height: 100%;
 }
 
-@media (max-width: 900px) {
-    .skill-tree {
-        flex-direction: column;
-        gap: 24px;
-    }
-}
 
 
 /*Dark Mode Specific Styles*/
