@@ -11,7 +11,7 @@ function ordenarCamadas(camadas) {
     // ordena os elementos de cada camada de forma a ficarem mais proximos dos seus pré-requisitos
     ordenadas = [];
     // primeira camada em ordem alfabética
-    ordenadas.push(camadas.shift().sort((a, b) => {
+    ordenadas.push((camadas.shift()).sort((a, b) => {
          const nomeA = habilidades.find(h => h.node === a).nome.toLowerCase();
          const nomeB = habilidades.find(h => h.node === b).nome.toLowerCase();
             if (nomeA < nomeB) return -1;
@@ -19,32 +19,27 @@ function ordenarCamadas(camadas) {
             return 0;
     }));
     // para as camadas seguintes usar as colunas como referencia
-    // para cada camada, ordenar os elementos com base na proximidade dos pré-requisitos na camada anterior
+    // para cada camada, ordenar os elementos com base na proximidade dos pré-requisitos anteriores
+    camadas.forEach((camada) => {
+        const colunaMap = new Map();
+        ordenadas.forEach((anteriores) => {
+            anteriores.forEach((habilidade, colIndex) => {
+                const key = habilidades.find(h => h.node === habilidade).key;
+                colunaMap.set(key, colIndex);
+            }); 
+        }); // agora colunaMap tem a chave da habilidade como chave e o índice da coluna como valor
 
-    for (let i = 0; i < camadas.length; i++) {
-        const ordenando = camadas.shift();
-        ordenando.forEach(habilidade => {
-            // encontrar o índice médio dos pré-requisitos na camada anterior
-            const preReqs = habilidades.find(h => h.node === habilidade).pre_requisitos;
-            let indices = [];
-            preReqs.forEach(req => {
-                const index = ordenadas[i - 1]?.findIndex(h => h.id === req);
-                if (index !== -1 && index !== undefined) {
-                    indices.push(index);
-                }
-            });
-            const indiceMedio = indices.length > 0 ? indices.reduce((a, b) => a + b, 0) / indices.length : -1;
-            habilidade.indiceMedio = indiceMedio;
+        // ordenar a camada atual com base na média dos índices das colunas dos pré-requisitos
+        const camadaOrdenada = camada.slice().sort((a, b) => { // copia a camada para não modificar o original
+            const preReqA = habilidades.find(h => h.node === a).pre_requisitos; // pré-requisitos da habilidade A
+            const preReqB = habilidades.find(h => h.node === b).pre_requisitos; // pré-requisitos da habilidade B
+            const medColA = preReqA.length > 0 ? (preReqA.map(req => colunaMap.get(req) ?? Infinity).reduce((sum, val) => sum + val, 0) / preReqA.length) : Infinity;
+            const medColB = preReqB.length > 0 ? (preReqB.map(req => colunaMap.get(req) ?? Infinity).reduce((sum, val) => sum + val, 0) / preReqB.length) : Infinity;
+            return medColA - medColB;
         });
-        // ordenar pela média dos índices dos pré-requisitos
-        ordenando.sort((a, b) => {
-            return a.indiceMedio - b.indiceMedio;
-        });
-        // remover a propriedade temporária
-        ordenando.forEach(h => delete h.indiceMedio);
-        ordenadas.push(ordenando);
-    }
-    return ordenadas; // placeholder, implementar lógica de ordenação
+        ordenadas.push(camadaOrdenada);
+    });
+    return ordenadas;
 }
 
 
@@ -142,6 +137,7 @@ function criarSetas(ligações, container) {
         line.setAttribute("stroke", "black");
         line.setAttribute("stroke-width", "5");
         line.setAttribute("marker-end", "url(#arrowhead)");
+        line.id = `line-${ligação[0].id}-to-${ligação[1].id}`;
         svg.appendChild(line);
     
     })
