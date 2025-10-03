@@ -1,3 +1,4 @@
+// forma de cada bloco de habilidade
 /*div class="skill">
     <div class="skill-img">Imagem</div>
     <div class="skill-info">
@@ -89,7 +90,7 @@ function criarHabilidade(key,nome, imagemUrl, descricao) {
 }
 
 // cria setas entre as habilidades usando svg
-function criarSetas(ligações, container) { 
+function criarSetas(ligações, container, camadas) { 
     const svgNS = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(svgNS, "svg");
     svg.setAttribute("width", "100%");
@@ -124,20 +125,34 @@ function criarSetas(ligações, container) {
         
 
         // Ajustar as coordenadas relativas ao container de setas
+        
         const inicioX = (inicioBox.left + inicioBox.right) / 2 - containerBox.left;
         const inicioY = inicioBox.bottom - containerBox.top;
         const fimX    = (fimBox.left + fimBox.right) / 2 - containerBox.left;
         const fimY    = fimBox.top - containerBox.top;
-
+        
         const line = document.createElementNS(svgNS, "line");
-        line.setAttribute("x1", String(inicioX));
-        line.setAttribute("y1", String(inicioY));
-        line.setAttribute("x2", String(fimX));
-        line.setAttribute("y2", String(fimY));
+        if (camadas.find(c => c.includes(ligação[0])) === camadas.find(c => c.includes(ligação[1]) + 1)){ // deu erro aqui corrigir depois
+        // se a ligação é entre camadas adjacentes, desenhar linha reta
+            line.setAttribute("x1", String(inicioX));
+            line.setAttribute("y1", String(inicioY));
+            line.setAttribute("x2", String(fimX));
+            line.setAttribute("y2", String(fimY));
+        } else {
+        // se a ligação é entre camadas não adjacentes, desenhar linha com curva 
+            const midY = (inicioY + fimY) / 2;
+            line.setAttribute("x1", String(inicioX));
+            line.setAttribute("y1", String(inicioY));
+            line.setAttribute("x2", String(fimX));
+            line.setAttribute("y2", String(fimY));
+            line.setAttribute("stroke-dasharray", "5,5"); // linha tracejada para indicar salto de camada
+            //depois fazer algo mais detalhado
+        }
         line.setAttribute("stroke", "black");
         line.setAttribute("stroke-width", "5");
         line.setAttribute("marker-end", "url(#arrowhead)");
         line.id = `line-${ligação[0].id}-to-${ligação[1].id}`;
+        // deixar as linhas mais bonitas depois
         svg.appendChild(line);
     
     })
