@@ -132,6 +132,7 @@ function criarSetas(ligações, container, camadas) {
         const fimY    = fimBox.top - containerBox.top;
         
         const line = document.createElementNS(svgNS, "line");
+        
         // Descobrir em que camada está cada node
         const getCamadaIndex = (node) => {
             for (let i = 0; i < camadas.length; i++) {

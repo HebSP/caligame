@@ -100,8 +100,7 @@ footer {
     display: flex;
     justify-content: center;
     gap: 24px;
-    margin-top: 12px;
-    margin-bottom: 12px;
+    margin: 12px;
 }
 .skill {
     min-width: 200px;
