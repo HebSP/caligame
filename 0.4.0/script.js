@@ -131,7 +131,7 @@ function criarSetas(ligações, container, camadas) {
         const fimX    = (fimBox.left + fimBox.right) / 2 - containerBox.left;
         const fimY    = fimBox.top - containerBox.top;
         
-        const line = document.createElementNS(svgNS, "line");
+        const path = document.createElementNS(svgNS, "path");
 
         // Descobrir em que camada está cada node
         const getCamadaIndex = (node) => {
@@ -145,26 +145,27 @@ function criarSetas(ligações, container, camadas) {
 
         if (camadaFim === camadaInicio + 1) { // se a ligação é entre camadas adjacentes
             
-            line.setAttribute("x1", String(inicioX));
-            line.setAttribute("y1", String(inicioY));
-            line.setAttribute("x2", String(fimX));
-            line.setAttribute("y2", String(fimY));
+            path.setAttribute("d", `M ${inicioX} ${inicioY} C ${inicioX} ${(inicioY + fimY) / 2} , ${fimX} ${(inicioY + fimY) / 2} , ${fimX} ${fimY}`);
         } else {
+            path.setAttribute("d", `M ${inicioX} ${inicioY} C ${inicioX} ${(inicioY + fimY) / 2} , ${fimX} ${(inicioY + fimY) / 2} , ${fimX} ${fimY}`);
             // se a ligação é entre camadas não adjacentes, desenhar linha com curva, deviando dos objetos no meio do caminho
-            const midY = (inicioY + fimY) / 2;
-            line.setAttribute("x1", String(inicioX));
-            line.setAttribute("y1", String(inicioY));
-            line.setAttribute("x2", String(fimX));
-            line.setAttribute("y2", String(fimY));
-            line.setAttribute("stroke-dasharray", "5,5"); // linha tracejada para indicar salto de camada
+            // const path0 = document.createElementNS(svgNS, "path");
+            // path0.setAttribute("d", `M ${inicioX} ${inicioY} C ${inicioX} ${(inicioY + 28)} , ${fimX} ${(inicioY + 28)} , ${fimX} ${inicioY + 56}`);
+            // path0.setAttribute("stroke", "black");
+            // path0.setAttribute("stroke-width", "5");
+            // path0.setAttribute("fill", "none");
+            // path0.setAttribute("stroke-dasharray", "5,5"); // linha tracejada para indicar salto de camada
+            // path0.id = `path-${ligação[0].id}-to-${ligação[1].id}-start`;
+            // svg.appendChild(path0);
+            // path.setAttribute("d", `M ${fimX} ${inicioY + 56} C ${fimX} ${(inicioY + fimY) / 2} , ${fimX} ${(inicioY + fimY) / 2} , ${fimX} ${fimY}`);
             // depois fazer algo mais detalhado
         }
-        line.setAttribute("stroke", "black");
-        line.setAttribute("stroke-width", "5");
-        line.setAttribute("marker-end", "url(#arrowhead)");
-        line.id = `line-${ligação[0].id}-to-${ligação[1].id}`;
-        // deixar as linhas mais bonitas depois
-        svg.appendChild(line);
+        path.setAttribute("stroke", "black");
+        path.setAttribute("stroke-width", "5");
+        path.setAttribute("fill", "none");
+        path.setAttribute("marker-end", "url(#arrowhead)");
+        path.id = `path-${ligação[0].id}-to-${ligação[1].id}`;
+        svg.appendChild(path);
     
     })
 
