@@ -132,21 +132,30 @@ function criarSetas(ligações, container, camadas) {
         const fimY    = fimBox.top - containerBox.top;
         
         const line = document.createElementNS(svgNS, "line");
-        if (camadas.find(c => c.includes(ligação[0])) === camadas.find(c => c.includes(ligação[1]) + 1)){ // deu erro aqui corrigir depois
-        // se a ligação é entre camadas adjacentes, desenhar linha reta
+        // Descobrir em que camada está cada node
+        const getCamadaIndex = (node) => {
+            for (let i = 0; i < camadas.length; i++) {
+            if (camadas[i].includes(node)) return i;
+            }
+            return -1;
+        };
+        const camadaInicio = getCamadaIndex(ligação[0]);
+        const camadaFim = getCamadaIndex(ligação[1]);
+
+        if (camadaFim === camadaInicio + 1) { // se a ligação é entre camadas adjacentes
             line.setAttribute("x1", String(inicioX));
             line.setAttribute("y1", String(inicioY));
             line.setAttribute("x2", String(fimX));
             line.setAttribute("y2", String(fimY));
         } else {
-        // se a ligação é entre camadas não adjacentes, desenhar linha com curva 
+            // se a ligação é entre camadas não adjacentes, desenhar linha com curva ou tracejada
             const midY = (inicioY + fimY) / 2;
             line.setAttribute("x1", String(inicioX));
             line.setAttribute("y1", String(inicioY));
             line.setAttribute("x2", String(fimX));
             line.setAttribute("y2", String(fimY));
             line.setAttribute("stroke-dasharray", "5,5"); // linha tracejada para indicar salto de camada
-            //depois fazer algo mais detalhado
+            // depois fazer algo mais detalhado
         }
         line.setAttribute("stroke", "black");
         line.setAttribute("stroke-width", "5");
@@ -160,11 +169,11 @@ function criarSetas(ligações, container, camadas) {
     return svg;
 }
 
-function criarDivSetas(ligações, container){
+function criarDivSetas(ligações, container, camadas) {
     const setasContainer = document.createElement('div')
     setasContainer.classList.add('setas-container')
     
-    setasContainer.appendChild(criarSetas(ligações,container))
+    setasContainer.appendChild(criarSetas(ligações,container, camadas))
 
     return setasContainer
 }
@@ -224,14 +233,6 @@ function criarLigações(habilidades) {
     return ligações;
 }
 
-// Exemplo usando fetch (funciona em páginas servidas por um servidor web)
-// async function carregarHabilidadesJSON() {
-//     jsonPromisse =  fetch('habilidades.json')
-//         .then(response => response.json())
-//         .then(data => data);
-//     habilidades = await jsonPromisse;
-//     return habilidades;
-// }
 async function carregarHabilidadesJSON() {
     const response = await fetch('habilidades.json');
     const data = await response.json();
@@ -271,7 +272,7 @@ async function gerarArvoreDeHabilidades() {
     container.appendChild(nodoPrincipal);
 
     // Adicionar setas entre as camadas
-    const containerSetas = criarDivSetas(ligações, container);
+    const containerSetas = criarDivSetas(ligações, container, camadas);
     container.appendChild(containerSetas);
 
 }
