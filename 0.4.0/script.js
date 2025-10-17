@@ -43,6 +43,37 @@ function ordenarCamadas(camadas) {
     return ordenadas;
 }
 
+function ordenarintermediarios(camadas) { // estamos fazendo isso aqui agora
+    // ordenar os nodos intermediários para ficarem no centro dos seus pré-requisitos e filhos
+    camadas.forEach((camada, camadaIndex) => {
+        const intermediarios = camada.filter(node => node.classList.contains('nodo-intermediario'));
+        intermediarios.forEach(intermediario => {
+            const idParts = intermediario.id.split('-');
+            const keyPai = idParts[1];
+            const keyFilho = idParts[3];
+            const camadaPaiIndex = camadaIndex - 1;
+            const camadaFilhoIndex = camadaIndex + 1;
+            const camadaPai = camadas[camadaPaiIndex];
+            const camadaFilho = camadas[camadaFilhoIndex];
+            const indexPai = camadaPai ? camadaPai.findIndex(node => habilidades.find(h => h.node === node).id === keyPai) : -1;
+            const indexFilho = camadaFilho ? camadaFilho.findIndex(node =>  habilidades.find(h => h.node === node).id === keyFilho) : -1;
+            let novoIndex = -1;
+            if (indexPai !== -1 && indexFilho !== -1) {
+                novoIndex = Math.floor((indexPai + indexFilho) / 2);
+            } else if (indexPai !== -1) {
+                novoIndex = indexPai;
+            } else if (indexFilho !== -1) {
+                novoIndex = indexFilho;
+            }
+            if (novoIndex !== -1) {
+                // mover o intermediário para o novo índice
+                camada.splice(camada.indexOf(intermediario), 1); // remove do índice atual
+                camada.splice(novoIndex, 0, intermediario); // insere no novo índice
+            }
+        });
+    });
+    return camadas;
+}
 
 function criarCamada(filhos = []) {
     const camada = document.createElement('div');
@@ -88,8 +119,7 @@ function criarHabilidade(key,nome, imagemUrl, descricao) {
 
     return node;
 }
-
-// cria setas entre as habilidades usando svg
+// cria setas entre as habilidades usando svg (sera substituido)
 function criarSetas(ligações, container, camadas) { 
     const svgNS = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(svgNS, "svg");
@@ -223,13 +253,39 @@ function criarCamadas(habilidades) {
     return ordenarCamadas(camadas);
 }
 
-function criarLigações(habilidades) {
+function getCamadaIndex(node, camadas) {
+    for (let i = 0; i < camadas.length; i++) {
+        if (camadas[i].includes(node)) return i;
+    }
+    return -1;
+}
+
+function criarLigações(habilidades, camadas) {
+
     let ligações = [];
-    habilidades.forEach(habilidade => { 
+    habilidades.forEach(habilidade => {
+        let camadaHabilidade = getCamadaIndex(habilidade.node, camadas);
         habilidade.pre_requisitos.forEach(req => {
             const pai = habilidades.find(h => h.key === req);
             if (pai) {
-                ligações.push([pai.node, habilidade.node]);
+                let camadaPai = getCamadaIndex(pai.node, camadas);
+                if (camadaPai + 1 === camadaHabilidade) {
+                    ligações.push([pai.node, habilidade.node]);
+                } else{
+                    // ligação entre camadas não adjacentes
+                    
+                    while (camadaPai + 1 < camadaHabilidade) {
+                        // criar nó intermediário fictício
+                        const nodoIntermediário = document.createElement('div');    
+                        nodoIntermediário.classList.add('nodo-intermediario');
+                        nodoIntermediário.id = `intermediario-${pai.key}-to-${habilidade.key}-layer-${camadaPai + 1}`;
+                        camadas[camadaPai + 1].push(nodoIntermediário);
+                        ligações.push([pai.node, nodoIntermediário]);
+                        pai.node = nodoIntermediário; // atualizar o pai para o próximo nó intermediário
+                        camadaPai++;
+                    }
+                    ligações.push([pai.node, habilidade.node]);
+                }
             }
         });
     });
@@ -260,7 +316,7 @@ async function gerarArvoreDeHabilidades() {
     
     camadas = criarCamadas(habilidades); // Cada sub-array representa uma camada na árvore
     
-    ligações = criarLigações(habilidades);
+    ligações = criarLigações(habilidades, camadas); // Criar ligações entre os nodes
     // Criar e adicionar camadas ao container
     camadas.forEach(camada => {
         const camadaNode = criarCamada(camada);
