@@ -45,25 +45,38 @@ function ordenarCamadas(camadas) {
 
 function ordenarintermediarios(camadas) { // estamos fazendo isso aqui agora
     // ordenar os nodos intermediários para ficarem no centro dos seus pré-requisitos e filhos
+    console.log('Ordenando nodos intermediários...');
     camadas.forEach((camada, camadaIndex) => {
+        
+        avaliados = []
         const intermediarios = camada.filter(node => node.classList.contains('nodo-intermediario'));
         intermediarios.forEach(intermediario => {
-            const idParts = intermediario.id.split('-');
-            const keyPai = idParts[1];
-            const keyFilho = idParts[3];
+            if (avaliados.includes(intermediario)) return; // já foi avaliado
+            avaliados.push(intermediario);
+            
+            const idParts = (((intermediario.id.split('-')).slice(1)).slice(0, -2)).join('-').split('-to-');
+
+            const keyPai = idParts[0];
+            const keyFilho = idParts[1];
+
             const camadaPaiIndex = camadaIndex - 1;
             const camadaFilhoIndex = camadaIndex + 1;
+
             const camadaPai = camadas[camadaPaiIndex];
             const camadaFilho = camadas[camadaFilhoIndex];
-            const indexPai = camadaPai ? camadaPai.findIndex(node => habilidades.find(h => h.node === node).id === keyPai) : -1;
-            const indexFilho = camadaFilho ? camadaFilho.findIndex(node =>  habilidades.find(h => h.node === node).id === keyFilho) : -1;
+
+            const indexPai = camadaPai ? camadaPai.findIndex(node => node.id === keyPai) : -1;
+            const indexFilho = camadaFilho ? camadaFilho.findIndex(node => node.id === keyFilho) : -1;
+            
             let novoIndex = -1;
             if (indexPai !== -1 && indexFilho !== -1) {
                 novoIndex = Math.floor((indexPai + indexFilho) / 2);
             } else if (indexPai !== -1) {
-                novoIndex = indexPai;
-            } else if (indexFilho !== -1) {
-                novoIndex = indexFilho;
+                //mais de uma camada de distancia começando aqui
+                const idPartsLinhagem = (intermediario.id.split('-')).slice(0, -1).join('-').split('-layer-');
+                const keyLinhagem = idPartsLinhagem[0];
+                const camadaLinhagemIndex = parseInt(idPartsLinhagem[1]) - 1;
+
             }
             if (novoIndex !== -1) {
                 // mover o intermediário para o novo índice
@@ -317,6 +330,9 @@ async function gerarArvoreDeHabilidades() {
     camadas = criarCamadas(habilidades); // Cada sub-array representa uma camada na árvore
     
     ligações = criarLigações(habilidades, camadas); // Criar ligações entre os nodes
+    
+    ordenarintermediarios(camadas); // Ordenar nodos intermediários
+    
     // Criar e adicionar camadas ao container
     camadas.forEach(camada => {
         const camadaNode = criarCamada(camada);
