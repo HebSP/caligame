@@ -54,35 +54,62 @@ function ordenarintermediarios(camadas) { // estamos fazendo isso aqui agora
             if (avaliados.includes(intermediario)) return; // já foi avaliado
             avaliados.push(intermediario);
             
+            // extrair keyPai e keyFilho do id do intermediário
             const idParts = (((intermediario.id.split('-')).slice(1)).slice(0, -2)).join('-').split('-to-');
-
             const keyPai = idParts[0];
             const keyFilho = idParts[1];
 
+            // encontrar os índices do pai na camada anterior
             const camadaPaiIndex = camadaIndex - 1;
-            const camadaFilhoIndex = camadaIndex + 1;
-
             const camadaPai = camadas[camadaPaiIndex];
-            const camadaFilho = camadas[camadaFilhoIndex];
-
             const indexPai = camadaPai ? camadaPai.findIndex(node => node.id === keyPai) : -1;
+            
+            if (indexPai === -1) {
+                console.warn(`Pai com key ${keyPai} não encontrado na camada ${camadaPaiIndex}`);
+            }
+            
+            // encontrar o índice dos meios
+            let indexMedios = [];
+            let linhagem = [];
+            loop = true;
+            while (loop) {
+            
+                const camadaMedioIndex = camadaIndex + indexMedios.length;
+                const camadaMedio = camadas[camadaMedioIndex];
+                if (camadaMedio) {
+                    const indexMedioAtual = camadaMedio ? camadaMedio.findIndex(node => node.id === `intermediario-${keyPai}-to-${keyFilho}-layer-${camadaMedioIndex + 1}`) : -1;
+                    if (indexMedioAtual === -1) {
+                        loop = false;
+                    }else{
+                        linhagem.push(camadaMedio[indexMedioAtual]);
+                        indexMedios.push(indexMedioAtual);
+                    } 
+                } else {
+                    loop = false;
+                    console.warn(`Camada média com índice ${camadaMedioIndex} não encontrada.`);
+                }
+            }
+
+            avaliados.push(...linhagem);
+
+            // encontrar o índice do filho
+            const camadaFilhoIndex = camadaIndex + indexMedios.length + 1;
+            const camadaFilho = camadas[camadaFilhoIndex];
             const indexFilho = camadaFilho ? camadaFilho.findIndex(node => node.id === keyFilho) : -1;
             
-            let novoIndex = -1;
+            // calcular o novo índice como a média dos índices do pai e do filho
+            let novosIndex = new Array(indexMedios.length).fill(-1);
             if (indexPai !== -1 && indexFilho !== -1) {
-                novoIndex = Math.floor((indexPai + indexFilho) / 2);
-            } else if (indexPai !== -1) {
-                //mais de uma camada de distancia começando aqui
-                const idPartsLinhagem = (intermediario.id.split('-')).slice(0, -1).join('-').split('-layer-');
-                const keyLinhagem = idPartsLinhagem[0];
-                const camadaLinhagemIndex = parseInt(idPartsLinhagem[1]) - 1;
+                novosIndex.forEach((_, i) => {
 
-            }
-            if (novoIndex !== -1) {
-                // mover o intermediário para o novo índice
-                camada.splice(camada.indexOf(intermediario), 1); // remove do índice atual
-                camada.splice(novoIndex, 0, intermediario); // insere no novo índice
-            }
+                    novosIndex[i] = Math.round(((indexPai/camadaPai.length + indexFilho/camadaFilho.length)*(i+1) / indexMedios.length + 1) * camadas[camadaIndex+i].length);
+                    
+                    // mover o intermediário para o novo índice
+                    camadas[camadaIndex+i].splice(camadas[camadaIndex+i].indexOf(linhagem[i]), 1); // remove do índice atual
+                    camadas[camadaIndex+i].splice(novosIndex[i], 0, linhagem[i]); // insere no novo índice
+                });
+            } else console.warn(`Não foi possível calcular novo índice para intermediário ${intermediario.id} e toda a sua linha devido a índices inválidos de pai ou filho.`);
+            
         });
     });
     return camadas;
@@ -286,18 +313,18 @@ function criarLigações(habilidades, camadas) {
                     ligações.push([pai.node, habilidade.node]);
                 } else{
                     // ligação entre camadas não adjacentes
-                    
+                    let tempPai = pai;
                     while (camadaPai + 1 < camadaHabilidade) {
                         // criar nó intermediário fictício
                         const nodoIntermediário = document.createElement('div');    
                         nodoIntermediário.classList.add('nodo-intermediario');
-                        nodoIntermediário.id = `intermediario-${pai.key}-to-${habilidade.key}-layer-${camadaPai + 1}`;
+                        nodoIntermediário.id = `intermediario-${tempPai.key}-to-${habilidade.key}-layer-${camadaPai + 1}`;
                         camadas[camadaPai + 1].push(nodoIntermediário);
                         ligações.push([pai.node, nodoIntermediário]);
-                        pai.node = nodoIntermediário; // atualizar o pai para o próximo nó intermediário
+                        tempPai.node = nodoIntermediário; // atualizar o pai para o próximo nó intermediário
                         camadaPai++;
                     }
-                    ligações.push([pai.node, habilidade.node]);
+                    ligações.push([tempPai.node, habilidade.node]);
                 }
             }
         });
