@@ -46,18 +46,21 @@ function ordenarCamadas(camadas) {
 function ordenarintermediarios(camadas) { // estamos fazendo isso aqui agora
     // ordenar os nodos intermediários para ficarem no centro dos seus pré-requisitos e filhos
     console.log('Ordenando nodos intermediários...');
+
+    avaliados = [];
     camadas.forEach((camada, camadaIndex) => {
         
-        avaliados = []
+
         const intermediarios = camada.filter(node => node.classList.contains('nodo-intermediario'));
         intermediarios.forEach(intermediario => {
             if (avaliados.includes(intermediario)) return; // já foi avaliado
-            avaliados.push(intermediario);
             
             // extrair keyPai e keyFilho do id do intermediário
             const idParts = (((intermediario.id.split('-')).slice(1)).slice(0, -2)).join('-').split('-to-');
             const keyPai = idParts[0];
             const keyFilho = idParts[1];
+
+            console.log("Ordenando intermediário:", intermediario.id, "\nPai:", keyPai, "\nFilho:", keyFilho);
 
             // encontrar os índices do pai na camada anterior
             const camadaPaiIndex = camadaIndex - 1;
@@ -77,11 +80,14 @@ function ordenarintermediarios(camadas) { // estamos fazendo isso aqui agora
                 const camadaMedioIndex = camadaIndex + indexMedios.length;
                 const camadaMedio = camadas[camadaMedioIndex];
                 if (camadaMedio) {
-                    const indexMedioAtual = camadaMedio ? camadaMedio.findIndex(node => node.id === `intermediario-${keyPai}-to-${keyFilho}-layer-${camadaMedioIndex + 1}`) : -1;
+                    //console.log("procurando ",`intermediario-${keyPai}-to-${keyFilho}-layer-${camadaMedioIndex}`, "em \n",camadaMedio);
+                    const indexMedioAtual = camadaMedio ? camadaMedio.findIndex(node => node.id === `intermediario-${keyPai}-to-${keyFilho}-layer-${camadaMedioIndex}`) : -1;
                     if (indexMedioAtual === -1) {
                         loop = false;
                     }else{
+                        //console.log(`Encontrado intermediário na camada ${camadaMedioIndex} com índice ${indexMedioAtual}`);
                         linhagem.push(camadaMedio[indexMedioAtual]);
+                        avaliados.push(camadaMedio[indexMedioAtual]);
                         indexMedios.push(indexMedioAtual);
                     } 
                 } else {
@@ -90,23 +96,31 @@ function ordenarintermediarios(camadas) { // estamos fazendo isso aqui agora
                 }
             }
 
-            avaliados.push(...linhagem);
+            console.log("testados até agora:", avaliados);
 
             // encontrar o índice do filho
-            const camadaFilhoIndex = camadaIndex + indexMedios.length + 1;
+            const camadaFilhoIndex = camadaIndex + indexMedios.length;
             const camadaFilho = camadas[camadaFilhoIndex];
+
+            console.log("procurando filho", keyFilho, "em \n",camadaFilho);
             const indexFilho = camadaFilho ? camadaFilho.findIndex(node => node.id === keyFilho) : -1;
             
+            if (indexFilho != -1) {console.log(`Encontrado filho na camada ${camadaFilhoIndex} com índice ${indexFilho}`);}
+
             // calcular o novo índice como a média dos índices do pai e do filho
             let novosIndex = new Array(indexMedios.length).fill(-1);
+            console.log("Índices atuais dos intermediários:", indexMedios);
+            console.log("Cálculo de novos índices para intermediários entre pai índice", indexPai, "e filho índice", indexFilho);
             if (indexPai !== -1 && indexFilho !== -1) {
                 novosIndex.forEach((_, i) => {
 
-                    novosIndex[i] = Math.round(((indexPai/camadaPai.length + indexFilho/camadaFilho.length)*(i+1) / indexMedios.length + 1) * camadas[camadaIndex+i].length);
+                    novosIndex[i] = Math.round(indexPai/camadaPai.length + (indexFilho/camadaFilho.length - indexPai/camadaPai.length) * (i+1)/ (indexMedios.length + 1 ) * camadas[camadaIndex+i].length);
                     
                     // mover o intermediário para o novo índice
                     camadas[camadaIndex+i].splice(camadas[camadaIndex+i].indexOf(linhagem[i]), 1); // remove do índice atual
                     camadas[camadaIndex+i].splice(novosIndex[i], 0, linhagem[i]); // insere no novo índice
+
+                    console.log(`Intermediário ${linhagem[i].id} movido para o índice ${novosIndex[i]} na camada ${camadaIndex + i}`);
                 });
             } else console.warn(`Não foi possível calcular novo índice para intermediário ${intermediario.id} e toda a sua linha devido a índices inválidos de pai ou filho.`);
             
