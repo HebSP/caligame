@@ -10,7 +10,7 @@
 
 function ordenarCamadas(camadas) {
     // ordena os elementos de cada camada de forma a ficarem mais proximos dos seus pré-requisitos
-    ordenadas = [];
+    let ordenadas = [];
     // primeira camada em ordem alfabética
     ordenadas.push((camadas.shift()).sort((a, b) => {
          const nomeA = habilidades.find(h => h.node === a).nome.toLowerCase();
@@ -47,7 +47,7 @@ function ordenarintermediarios(camadas) { // estamos fazendo isso aqui agora
     // ordenar os nodos intermediários para ficarem no centro dos seus pré-requisitos e filhos
     console.log('Ordenando nodos intermediários...');
 
-    avaliados = [];
+    let avaliados = [];
     camadas.forEach((camada, camadaIndex) => {
         
 
