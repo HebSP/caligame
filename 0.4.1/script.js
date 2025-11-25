@@ -19,8 +19,11 @@ function ordenarCamadas(camadas) {
             if (nomeA > nomeB) return 1;
             return 0;
     }));
-    ordenadas[0].forEach((habilidade, index) => {
-        habilidade.index = index;
+
+    // definir índices e posições relativas para a primeira camada
+    ordenadas[0].forEach((elemento, index) => {
+        elemento.index = index;
+        elemento.posicaoRelativa = index - (ordenadas[0].length-1)/2;
     });
 
     // para as camadas seguintes usar as colunas como referencia
@@ -43,9 +46,9 @@ function ordenarCamadas(camadas) {
             const medColB = preReqB.length > 0 ? (preReqB.map(req => colunaMap.get(req) ?? Infinity).reduce((sum, val) => sum + val, 0) / preReqB.length) : Infinity;
             return medColA - medColB;
         });
-        camadaOrdenada.forEach((habilidade, index) => {
-            habilidade.index = index;
-            habilidade.posicaoRelativa = index - (camadaOrdenada.length-1)/2;
+        camadaOrdenada.forEach((elemento, index) => {
+            elemento.index = index;
+            elemento.posicaoRelativa = index - (camadaOrdenada.length-1)/2;
         });
         ordenadas.push(camadaOrdenada);
     });
@@ -242,8 +245,11 @@ function criarLigações(habilidades, camadas) {
                         const meio = meios.shift();
                         index = -1;
                         
-                        const posicaoRelativa = (pai.posicaoRelativa + (pai.posicaoRelativa - habilidade.posicaoRelativa)* ((meio.camada - camadaPai)/(camadaHabilidade - camadaPai))) / 2;
+                        const posicaoRelativa = (pai.posicaoRelativa + (habilidade.posicaoRelativa - pai.posicaoRelativa) * ((meio.camada - camadaPai)/(camadaHabilidade - camadaPai))) / 2;
+                        console.log({paiPos: pai.posicaoRelativa, habPos: habilidade.posicaoRelativa, meioCamada: meio.camada, camadaPai: camadaPai, camadaHab: camadaHabilidade});
+                        console.log(pai);
                         index = Math.round(posicaoRelativa + (camadas[meio.camada].length-1)/2);
+                        console.log({posicaoRelativa,index,camadaLength:camadas[meio.camada].length});
                         meio.node.index = index+0,5; // para evitar conflitos de índice
                         meio.node.posicaoRelativa = posicaoRelativa;
                         // inserir o nó intermediário na camada correta, mantendo a ordem
@@ -279,6 +285,10 @@ async function gerarArvoreDeHabilidades() {
     // Criar nodes para cada habilidade
     habilidades.forEach(habilidade => {
         habilidade.node = criarHabilidade(habilidade.key, habilidade.nome, habilidade.imagem, habilidade.descricao);
+        habilidade.index = -1;
+        habilidade.posicaoRelativa = 0;
+        console.log(`Criada habilidade: ${habilidade.nome}`);
+        console.log(habilidade);
     });
     
     camadas = criarCamadas(habilidades); // Cada sub-array representa uma camada na árvore
