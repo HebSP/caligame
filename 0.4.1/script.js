@@ -212,6 +212,7 @@ function getCamadaIndex(node, camadas) {
 function criarLigações(habilidades, camadas) {
 
     let ligações = [];
+    let meios = [];
     habilidades.forEach(habilidade => {
         const camadaHabilidade = getCamadaIndex(habilidade.node, camadas);
         habilidade.pre_requisitos.forEach(req => {
@@ -223,18 +224,19 @@ function criarLigações(habilidades, camadas) {
                 } else{
                     // ligação entre camadas não adjacentes
                     let tempPai = pai, i = 1;
-                    let meios = [];
+
                     while (camadaPai + i < camadaHabilidade) {
                         // criar nó intermediário fictício
-                        const nodoIntermediário = document.createElement('div');    
+                        const nodoIntermediário = document.createElement('div');
                         nodoIntermediário.classList.add('nodo-intermediario');
-                        nodoIntermediário.id = `intermediario-${tempPai.key}-to-${habilidade.key}-layer-${camadaPai + i}`;
+                        nodoIntermediário.id = `intermediario-${pai.key}-to-${habilidade.key}-layer-${camadaPai + i}`;
                         //camadas[camadaPai + i].push(nodoIntermediário);
                         meios.push({node:nodoIntermediário,camada:camadaPai + i});
-                        ligações.push([pai.node, nodoIntermediário]);
+                        ligações.push([tempPai.node, nodoIntermediário]);
                         tempPai.node = nodoIntermediário; // atualizar o pai para o próximo nó intermediário
                         i++;
                     }
+                    /*
                     // encontrar a posição correta para inserir cada nó intermediário
                     let maiorCamada = -1;
                     camadas.forEach((camada) => {
@@ -256,13 +258,19 @@ function criarLigações(habilidades, camadas) {
                         camadas[meio.camada].splice(index, 0, meio.node);
                         console.log(`Inserido nó intermediário ${meio.node.id} na camada ${meio.camada} na posição ${index}`);
                     }
-
-
+                    */
                     ligações.push([tempPai.node, habilidade.node]);
                 }
+            } else {
+                console.warn(`Pré-requisito não encontrado: ${req} para a habilidade ${habilidade.nome}`);
             }
         });
     });
+
+    meios.forEach(meio => {
+        camadas[meio.camada].push(meio.node);
+    });
+
     return ligações;
 }
 
